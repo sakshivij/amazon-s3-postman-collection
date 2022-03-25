@@ -1,0 +1,288 @@
+{
+	"info": {
+		"_postman_id": "",
+		"name": "Amazon S3 Download File V3",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Get Session Token",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"let response = pm.response.json();\r",
+							"var credentials = response.GetSessionTokenResponse.GetSessionTokenResult.Credentials;\r",
+							"pm.environment.set(\"updatedAccessKey\", credentials.AccessKeyId) ;\r",
+							"pm.environment.set(\"updatedSecretKey\", credentials.SecretAccessKey) ;\r",
+							"pm.environment.set(\"session\", credentials.SessionToken);"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"pm.environment.set(\"resetValue\",pm.collectionVariables.toJSON().values)"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "awsv4",
+					"awsv4": [
+						{
+							"key": "service",
+							"value": "{{service}}",
+							"type": "string"
+						},
+						{
+							"key": "secretKey",
+							"value": "{{secretKey}}",
+							"type": "string"
+						},
+						{
+							"key": "accessKey",
+							"value": "{{accessKey}}",
+							"type": "string"
+						},
+						{
+							"key": "addAuthDataToQuery",
+							"value": true,
+							"type": "boolean"
+						},
+						{
+							"key": "region",
+							"value": "",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "https://{{service}}.amazonaws.com/?Version=2011-06-15&Action=GetSessionToken&DurationSeconds=3600&SerialNumber=arn:aws:iam::{{accountNumber}}:mfa/{{email}}&TokenCode={{code}}",
+					"protocol": "https",
+					"host": [
+						"{{service}}",
+						"amazonaws",
+						"com"
+					],
+					"path": [
+						""
+					],
+					"query": [
+						{
+							"key": "Version",
+							"value": "2011-06-15"
+						},
+						{
+							"key": "Action",
+							"value": "GetSessionToken"
+						},
+						{
+							"key": "DurationSeconds",
+							"value": "3600"
+						},
+						{
+							"key": "SerialNumber",
+							"value": "arn:aws:iam::{{accountNumber}}:mfa/{{email}}"
+						},
+						{
+							"key": "TokenCode",
+							"value": "{{code}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Assume Role",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"let response = pm.response.json();\r",
+							"var credentials = response.AssumeRoleResponse.AssumeRoleResult.Credentials;\r",
+							"pm.environment.set(\"updatedAccessKey\", credentials.AccessKeyId) ;\r",
+							"pm.environment.set(\"updatedSecretKey\", credentials.SecretAccessKey) ;\r",
+							"pm.environment.set(\"session\", credentials.SessionToken);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "awsv4",
+					"awsv4": [
+						{
+							"key": "secretKey",
+							"value": "{{updatedSecretKey}}",
+							"type": "string"
+						},
+						{
+							"key": "accessKey",
+							"value": "{{updatedAccessKey}}",
+							"type": "string"
+						},
+						{
+							"key": "sessionToken",
+							"value": "{{session}}",
+							"type": "string"
+						},
+						{
+							"key": "service",
+							"value": "{{service}}",
+							"type": "string"
+						},
+						{
+							"key": "addAuthDataToQuery",
+							"value": true,
+							"type": "boolean"
+						},
+						{
+							"key": "region",
+							"value": "",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "https://sts.amazonaws.com/?Action=AssumeRole&RoleArn=arn:aws:iam::{{roleAccount}}:role/{{roleName}}&Version=2011-06-15&RoleSessionName=test",
+					"protocol": "https",
+					"host": [
+						"sts",
+						"amazonaws",
+						"com"
+					],
+					"path": [
+						""
+					],
+					"query": [
+						{
+							"key": "Action",
+							"value": "AssumeRole"
+						},
+						{
+							"key": "RoleArn",
+							"value": "arn:aws:iam::{{roleAccount}}:role/{{roleName}}"
+						},
+						{
+							"key": "Version",
+							"value": "2011-06-15"
+						},
+						{
+							"key": "RoleSessionName",
+							"value": "test"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Download object from S3",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.environment.get(\"resetValue\").forEach((a)=>pm.collectionVariables.set(a.key,a.value))"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {}
+			},
+			"request": {
+				"auth": {
+					"type": "awsv4",
+					"awsv4": [
+						{
+							"key": "secretKey",
+							"value": "{{updatedSecretKey}}",
+							"type": "string"
+						},
+						{
+							"key": "accessKey",
+							"value": "{{updatedAccessKey}}",
+							"type": "string"
+						},
+						{
+							"key": "service",
+							"value": "s3",
+							"type": "string"
+						},
+						{
+							"key": "sessionToken",
+							"value": "{{session}}",
+							"type": "string"
+						},
+						{
+							"key": "addAuthDataToQuery",
+							"value": true,
+							"type": "boolean"
+						},
+						{
+							"key": "region",
+							"value": "",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "app",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"url": {
+					"raw": "https://s3.amazonaws.com/{{bucket}}/{{path}}",
+					"protocol": "https",
+					"host": [
+						"s3",
+						"amazonaws",
+						"com"
+					]				
+				}
+			},
+			"response": []
+		}
+	]
+}
